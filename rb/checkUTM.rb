@@ -71,6 +71,21 @@ def check_uforest(lon,lat)
   name
 end
 
+# ป่าชายเลน
+#def check_mforest(lon,lat)
+#  con = PGconn.connect("localhost",5432,nil,nil,"dsi","postgres")
+#  sql = "select xxxxx from xxxxx where contains(the_geom,"
+#  sql += "geometryfromtext('POINT(#{lon} #{lat})',4326))"
+#  res = con.exec(sql)
+#  con.close
+#  found = res.num_tuples
+#  name = "NA"
+#  if (found == 1)
+#    name = res[0][0]
+#  end
+#  name
+#end
+
 c = CGI::new
 utmn = c['utmn']
 utme = c['utme']
@@ -83,7 +98,8 @@ lat = lonlat.last
 
 npark = check_npark(lon,lat)
 rforest = check_rforest(lon,lat)
-uforest = check_uforest(lon,lat)
+#uforest = check_uforest(lon,lat)
+#mforest = check_mforest(lon,lat)
 
 msg = "พิกัด #{utmn}:N "
 msg += "#{utme}:E<br>"
@@ -101,11 +117,18 @@ else
   msg += "<br><b><font color=\"red\">อยู่ในเขตป่าสงวน#{rforest}</font></b>"
 end
 
-if (uforest == "NA")
-  msg += "<br><b><font color=\"green\">ไม่อยู่ในเขตป่า use forest</font></b>"
-else
-  msg += "<br><b><font color=\"red\">อยู่ในเขตป่า #{uforest}</font></b>"
-end
+#if (uforest == "NA")
+#  msg += "<br><b><font color=\"green\">ไม่อยู่ในเขตป่า use 
+#forest</font></b>"
+#else
+#  msg += "<br><b><font color=\"red\">อยู่ในเขตป่า #{uforest}</font></b>"
+#end
+
+#if (mforest == "NA")
+#  msg += "<br><b><font color=\"green\">ไม่อยู่ในเขตป่าชายเลน</font></b>"
+#else
+#  msg += "<br><b><font color=\"red\">อยู่ในเขตป่าชายเลน #{mforest}</font></b>"
+#end
 
 data = "{'msg':'#{msg}','lon':'#{lon}','lat':'#{lat}'}"
 

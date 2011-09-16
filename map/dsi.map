@@ -1,0 +1,100 @@
+MAP
+	NAME DSI
+        STATUS ON
+        EXTENT 97.0 5.5 105.7 20.5
+        UNITS dd
+        SIZE 600 400
+        IMAGECOLOR 180 180 180
+        TRANSPARENT ON
+        IMAGETYPE png
+	FONTSET "/ms521/fonts/fonts.txt"
+	#SYMBOLSET "/ms521/symbols/symbols.txt"
+	OUTPUTFORMAT
+		NAME png
+		DRIVER "GD/PNG"
+		MIMETYPE "image/png"
+		IMAGEMODE RGB
+		EXTENSION "png"
+		FORMATOPTION "INTERLACE=OFF"
+	END
+        WEB
+                IMAGEPATH '/wms/tmp/'
+                IMAGEURL "/wms/tmp/"
+		METADATA
+			"wms_title" "Thailand WMS"
+			"wms_onlineresource" "http://203.157.240.9/cgi-bin/mapserv?map=/ms521/map/wms-dsi.map&"
+			"wms_srs" "EPSG:4326 EPSG:900913"
+		END
+        END
+        PROJECTION
+                "proj=latlong"
+		"datum=WGS84"
+	END
+
+	LAYER
+		NAME "province"
+                METADATA
+                        "wms_title" "Province"
+			"wms_srs" "EPSG:4326 EPSG:900913"
+                END
+        	PROJECTION
+                	"proj=latlong"
+			"datum=WGS84"
+		END
+		STATUS ON
+		OPACITY 50
+		TYPE POLYGON
+		DATA "/ms521/shp/gis_province.shp"
+		LABELITEM "prov_nam_t"
+		CLASS
+			STYLE
+				ANGLE 360
+				COLOR 200 200 150
+				OUTLINECOLOR 135 135 0
+				SYMBOL 0
+			END
+			LABEL
+                                TYPE truetype
+                                FONT tahoma
+                                SIZE 14
+				POSITION uc
+                                MINDISTANCE 100
+                                ENCODING tis-620			
+			END
+		END
+	END
+
+	LAYER
+		NAME "rforest"
+                METADATA
+                        "wms_title" "Reserve Forest"
+			"wms_srs" "EPSG:4326 EPSG:900913"
+                END
+        	PROJECTION
+                	"proj=latlong"
+			"datum=WGS84"
+		END
+		STATUS ON
+		OPACITY 50
+		TYPE POLYGON
+		DATA "/ms521/shp/reserve_forest.shp"
+		LABELITEM "name_th"
+		CLASS
+			STYLE
+				ANGLE 360
+				COLOR 200 200 150
+				OUTLINECOLOR 135 135 0
+				SYMBOL 0
+			END
+			LABEL
+                                TYPE truetype
+                                FONT tahoma
+                                SIZE 14
+				POSITION uc
+                                MINDISTANCE 100
+                                ENCODING tis-620			
+			END
+		END
+	END
+END
+
