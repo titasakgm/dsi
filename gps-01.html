@@ -1,0 +1,103 @@
+<html>
+<head>
+<title>OpenLayers Example</title>
+<script type="text/javascript" src="http://maps.google.com/maps?file=api&v=2&sensor=true&key=ABQIAAAANSH4gLdDtOLGbRXcM8JhLRQy0YMIzTaJQ9ibseWUKiF2cHzKTRStce5b7eW2MNUarHgsYkvan0sv_A"></script>
+<script src="http://openlayers.org/api/OpenLayers.js"></script>
+<style>
+div.olControlMousePosition {
+  font-family: Verdana;
+  font-size: 1em;
+  color: white;
+  padding-bottom: 10px;
+}
+</style>
+</head>
+<body>
+<div style="width:50%; height:75%; float:left;" id="map"></div>
+<div style="width:40%; height:25%; float:left;" id="gps">
+<table width='25%' border='1'>
+<tr>
+  <th>&nbsp;</th><th>DDD</th><th>MM</th><th>SS</th>
+</tr>
+<tr>
+  <th align='left'>Latitude</th>
+  <td align='right'><input id='lat_ddd' name='lat_ddd' maxlength=4 size=4 style='text-align:right;'></td>
+  <td align='right'><input id='lat_mm' name='lat_mm' maxlength=4 size=4 style='text-align:right;'></td>
+  <td align='right'><input id='lat_ss' name='lat_ss' maxlength=8 size=4 style='text-align:right;'></td>
+</tr>
+<tr>
+  <th align='left'>Longitude</th>
+  <td align='right'><input id='lon_ddd' name='lon_ddd' maxlength=4 size=4 style='text-align:right;'></td>
+  <td align='right'><input id='lon_mm' name='lon_mm' maxlength=4 size=4 style='text-align:right;'></td>
+  <td align='right'><input id='lon_ss' name='lon_ss' maxlength=8 size=4 style='text-align:right;'></td>
+</tr>
+<tr>
+  <th>&nbsp;</th>
+  <td colspan='3'><input type='button' value='Check' onclick='checkgps()' /></td>
+</tr>
+</table>
+<p>
+<pre>
+Try: DSI
+Latitude:   DDD:13  MM:53 SS:26.757
+Longitude:  DDD:100 MM:33 SS:57.9126
+</pre>
+</div>
+<script defer='defer' type='text/javascript'>
+function dms2dd(ddd,mm,ss)
+{
+  var d = parseFloat(ddd);
+  var m = parseFloat(mm)/60.0;
+  var s = parseFloat(ss)/3600.0;
+  return d + m + s;
+}
+
+function checkgps()
+{
+  var laddd = parseFloat(document.getElementById('lat_ddd').value);
+  var lamm = parseFloat(document.getElementById('lat_mm').value);
+  var lass = parseFloat(document.getElementById('lat_ss').value);
+  var loddd = parseFloat(document.getElementById('lon_ddd').value);
+  var lomm = parseFloat(document.getElementById('lon_mm').value);
+  var loss = parseFloat(document.getElementById('lon_ss').value);
+
+  var lon = dms2dd(loddd,lomm,loss);
+  var lat = dms2dd(laddd,lamm,lass);
+  var point = new OpenLayers.LonLat(lon, lat);
+  var p = point.transform(gcs, merc);
+
+  var size = new OpenLayers.Size(21,25);
+  var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
+  var icon = new OpenLayers.Icon('http://www.google.com/mapfiles/marker.png', size, offset);
+  markers.addMarker(new OpenLayers.Marker(p,icon));
+  map.setCenter(p, 11);
+}
+
+options = {
+  projection: new OpenLayers.Projection("EPSG:900913"),
+  displayProjection: new OpenLayers.Projection("EPSG:4326"),
+  units: "m",
+  numZoomLevels: 22,
+  maxResolution: 156543.0339,
+  maxExtent: new OpenLayers.Bounds(-20037508,-20037508,20037508,20037508)
+};
+
+var gcs = new OpenLayers.Projection("EPSG:4326");
+var merc = new OpenLayers.Projection("EPSG:900913");
+var map = new OpenLayers.Map('map', options);
+
+var markers = new OpenLayers.Layer.Markers( "Markers" );
+var ghyb = new OpenLayers.Layer.Google("Google",
+{
+  type: G_HYBRID_MAP,
+  sphericalMercator: true
+});
+map.addLayers([ghyb,markers]);
+map.addControl(new OpenLayers.Control.MousePosition());
+
+var bkk = new OpenLayers.LonLat(100.474091,13.738051);
+map.setCenter(bkk.transform(gcs,merc),5);
+</script>
+</body>
+</html>
+

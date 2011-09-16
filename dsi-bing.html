@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Toolbar</title>
+    
+    <link rel="stylesheet" type="text/css" href="/mapfish/mfbase/ext/resources/css/ext-all.css" />
+    <link rel="stylesheet" type="text/css" href="/mapfish/mfbase/mapfish/mapfish.css" />
+
+    <style>
+      div.olControlMousePosition {
+        font-family: Verdana;
+        font-size: 2em;
+        color: #FFF;
+        padding-bottom: 10px;
+      }
+    </style>
+    <script type="text/javascript" src="/mapfish/mfbase/openlayers/lib/Firebug/firebug.js"></script>
+
+    <script src="http://maps.google.com/maps/api/js?v=3.2&sensor=false"></script>
+    <!--
+    <script src='http://maps.google.com/maps?file=api&v=2&key=ABQIAAAANSH4gLdDtOLGbRXcM8JhLRQy0YMIzTaJQ9ibseWUKiF2cHzKTRStce5b7eW2MNUarHgsYkvan0sv_A'></script> 
+    -->
+
+    <script type="text/javascript" src="/mapfish/mfbase/openlayers/lib/OpenLayers.js"></script>
+    <script type="text/javascript" src="/mapfish/mfbase/ext/adapter/ext/ext-base.js"></script>
+    <script type="text/javascript" src="/mapfish/mfbase/ext/ext-all.js"></script>
+
+    <script type="text/javascript" src="/mapfish/mfbase/geoext/lib/GeoExt.js"></script>
+
+    <script type="text/javascript">
+      // Because of a bug in Firefox 2 we need to specify the MapFish base path.
+      // See https://bugzilla.mozilla.org/show_bug.cgi?id=351282
+      var gMfLocation = "/mapfish/mfbase/mapfish/";
+    </script>
+    <script type="text/javascript" src="/mapfish/mfbase/mapfish/MapFish.js"></script>
+    <script type="text/javascript" src="/mapfish/examples/examples.js"></script>
+    
+    <script type="text/javascript">
+    // reference local blank image
+    Ext.BLANK_IMAGE_URL = '/mapfish/mfbase/ext/resources/images/default/s.gif';
+     
+    // create namespace
+    Ext.namespace('toolbarExample');
+     
+    // create application
+    toolbarExample.app = function() {  
+        // private vars:
+        var map, toolbarItems = [], viewport, vectorLayer;
+        var markers;
+        var apiKey = "AnXErkelqCPb0UC5K-lCookgNa4-IwF1Cehgg9En9wcFz7iGblBxbZfm4484_qqK";
+
+        var gcs = new OpenLayers.Projection("EPSG:4326");
+        var merc = new OpenLayers.Projection("EPSG:900913");
+
+        // private functions
+        function dms2dd(ddd,mm,ss)
+        {
+          var d = parseFloat(ddd);
+          var m = parseFloat(mm)/60.0;
+          var s = parseFloat(ss)/3600.0;
+          return d + m + s;
+        }
+        function dd2dms(ll)
+        {
+          //debugger;
+          var d1 = ll;
+          var d2 = parseInt(d1 / 100 * 100);
+          var d3 = d1 - d2;
+          var d4 = d3 * 60;
+          var d5 = parseInt(d4);
+          var d6 = d4 - d5;
+          var d7 = d6 * 60;
+          var dms = [];
+          dms[0] = d2;
+          dms[1] = d5;
+          dms[2] = d7.toFixed(2);
+          return dms;
+        }
+
+        var createMap = function() {
+          map = new OpenLayers.Map({
+            projection: new OpenLayers.Projection("EPSG:900913"),
+            displayProjection: new OpenLayers.Projection("EPSG:4326"),
+            units: "m",
+            maxResolution: 156543.0339,
+            maxExtent: new OpenLayers.Bounds(-20037508.34, -20037508.34,
+                                     20037508.34, 20037508.34),
+            controls: [],
+          });
+
+          map.events.register('mousemove', map, function (e) {
+            var lonlat = map.getLonLatFromViewPortPx(e.xy);
+            var p1 = new OpenLayers.LonLat(lonlat.lon, lonlat.lat);
+            var p2 = p1.transform(merc, gcs);
+            var dmslat = dd2dms(p2.lat);
+            var dmslon = dd2dms(p2.lon);
+            var latstr = dmslat[0] + "&deg; " + dmslat[1] + "&apos; " + dmslat[2] + "&quot;";
+            var lonstr = dmslon[0] + "&deg; " + dmslon[1] + "&apos; " + dmslon[2] + "&quot;";
+            toolbarExample.app. setStatus("Current Position: " + latstr + " N " + lonstr + " E");
+          });
+        };
+
+        var createGoogleLayer = function() {
+          var ghyb = new OpenLayers.Layer.Google(
+            "Google Hybrid",
+            {sphericalMercator: true,type: google.maps.MapTypeId.TERRAIN, numZoomLevels: 19}
+          );
+          map.addLayer(ghyb);
+        };
+
+        var createBingLayer = function() {
+          // Bing's Road imagerySet
+          var road = new OpenLayers.Layer.Bing({
+            key: apiKey,
+            type: "Road"
+          });
+          // Bing's Aerial imagerySet
+          var aerial = new OpenLayers.Layer.Bing({
+            key: apiKey,
+            type: "Aerial"
+          });
+          // Bing's AerialWithLabels imagerySet
+          var hybrid = new OpenLayers.Layer.Bing({
+            key: apiKey,
+            type: "AerialWithLabels",
+            name: "Bing Aerial With Labels"
+          });
+          map.addLayers([road, aerial, hybrid]);         
+        }
+
+        var createMarker = function() {
+          markers = new OpenLayers.Layer.Markers( "Markers", {
+            displayInLayerSwitcher: false
+          });
+          map.addLayer(markers);
+        };
+
+        var createWmsLayer = function(name, url, params, options) {
+            map.addLayer(new OpenLayers.Layer.WMS(name, url, params, options));
+        };
+        
+        var createVectorLayer = function() {
+            vectorLayer = new OpenLayers.Layer.Vector("vector", {
+                displayInLayerSwitcher: false
+            });
+            map.addLayer(vectorLayer);
+            
+            vectorLayer.events.register('featureadded', vectorLayer, function(){
+                var l = this.features.length;
+                var msg = (l==1) ? 'There is one feature on map' : 'There are now ' + l + ' features on map';
+                toolbarExample.app.setStatus(msg);
+            });
+            
+            return vectorLayer;
+        };
+
+        var addMapControls = function() {
+            // navigation control
+            var navControl = new OpenLayers.Control.Navigation({
+                type: OpenLayers.Control.TYPE_TOGGLE,
+                zoomWheelEnabled: true
+            });
+            map.addControl(navControl);
+            map.addControl(new OpenLayers.Control.MousePosition());
+            map.addControl(new OpenLayers.Control.LayerSwitcher());
+            map.addControl(new OpenLayers.Control.PanZoomBar());
+            navControl.activate();
+        };
+        
+        var center = new OpenLayers.LonLat(100,13);
+        var thailand = center.transform(gcs,merc);
+
+        var test_gps = function() {
+          Ext.getCmp('londd').setValue(100);
+          Ext.getCmp('lonmm').setValue(33);
+          Ext.getCmp('lonss').setValue(57.9126);
+          Ext.getCmp('latdd').setValue(13);
+          Ext.getCmp('latmm').setValue(53);
+          Ext.getCmp('latss').setValue(26.757);
+        }
+
+        var check_gps = function(){
+          var lodd = Ext.getCmp('londd').getValue();        
+          var lomm = Ext.getCmp('lonmm').getValue();        
+          var loss = Ext.getCmp('lonss').getValue();        
+          var ladd = Ext.getCmp('latdd').getValue();        
+          var lamm = Ext.getCmp('latmm').getValue();        
+          var lass = Ext.getCmp('latss').getValue();        
+
+          report(lodd,lomm,loss,ladd,lamm,lass);
+        }
+
+        var report = function(lodd,lomm,loss,ladd,lamm,lass) {
+          //debugger;
+          Ext.Ajax.request({
+            url: 'rb/checkLonLat2.rb'
+            ,params: {
+              method: 'GET'
+              ,lodd: lodd
+              ,lomm: lomm
+              ,loss: loss
+              ,ladd: ladd
+              ,lamm: lamm
+              ,lass: lass
+              ,format: 'json'
+            }
+            ,success: function(response, opts){
+              var data = eval( '(' + response.responseText + ')' );
+              var lon = data.lon;
+              var lat = data.lat;
+              var msg = data.msg;
+
+              var p1 = new OpenLayers.LonLat(lon,lat);
+              var p2 = p1.transform(gcs,merc);
+
+              var size = new OpenLayers.Size(21,25);
+              var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
+              var icon = new OpenLayers.Icon('http://www.google.com/mapfiles/marker.png', size, offset);
+              markers.addMarker(new OpenLayers.Marker(p2,icon));
+              map.setCenter(p2, 12);
+              Ext.Msg.alert('Result',data.msg);
+            }
+          });
+        };
+
+        var gps = new Ext.FormPanel({
+          id: 'id_gps',
+          labelAlign: 'top',
+          align: 'center',
+          frame: true,
+          title: 'ตำแหน่งพิกัด GPS',
+          bodyStyle: 'padding:5px 5px 5px',
+          width: 250,
+          items: [{
+            layout:'column',
+            items:[{
+              columnWidth:.3,
+              layout: 'form',
+              items: [{
+                xtype:'textfield',
+                id: 'latdd',
+                fieldLabel: 'Lat:DD',
+                labelSeparator: '',
+                name: 'latdd',
+                anchor:'95%'
+              },{
+                xtype:'textfield',
+                id: 'londd',
+                fieldLabel: 'Lon:DD',
+                labelSeparator: '',
+                name: 'londd',
+                anchor:'95%'
+              }]
+            },{
+              columnWidth:.3,
+              layout: 'form',
+              items: [{
+                xtype:'textfield',
+                id: 'latmm',
+                fieldLabel: 'Lat:MM',
+                labelSeparator: '',
+                name: 'latmm',
+                anchor:'95%'
+              },{
+                xtype:'textfield',
+                id: 'lonmm',
+                fieldLabel: 'Lon:MM',
+                labelSeparator: '',
+                name: 'lonmm',
+                anchor:'95%'
+              }]
+            },{
+              columnWidth:.3,
+              layout: 'form',
+              items: [{
+                xtype:'textfield',
+                id: 'latss',
+                fieldLabel: 'Lat:SS',
+                labelSeparator: '',
+                name: 'latss',
+                anchor:'100%'
+              },{
+                xtype:'textfield',
+                id: 'lonss',
+                fieldLabel: 'Lon:SS',
+                labelSeparator: '',
+                name: 'lonss',
+                anchor:'100%'
+              }]
+            },{
+              columnWidth:.1,
+              layout: 'form',
+              items: [{
+                xtype: 'textfield',
+                fieldLabel: '',
+                labelSeparator: '',
+                value: 'N',
+                anchor:'100%',
+                readOnly: true
+              },{
+                xtype: 'textfield',
+                fieldLabel: '',
+                labelSeparator: '',
+                value: 'E',
+                anchor:'100%',
+                readOnly: true
+              }]
+            }],
+            bodyCfg: {tag: 'center'},
+            buttons: [{
+              text: 'Check',
+              handler: check_gps
+      
+            },{
+              text: 'Clear',
+              handler: function(){
+                gps.getForm().reset();
+                markers.clearMarkers();
+              }
+            },{
+              text: 'Test',
+              handler: test_gps
+            }]
+          }]
+        });
+
+        var createViewport = function() {
+            viewport = new Ext.Viewport({
+                layout: 'border',
+                items: [
+                    new Ext.BoxComponent({
+                        region: 'north',
+                        el: 'north',
+                        height: 32,
+                        margins: {left: 5,top: 5}
+                    }), {
+                        region: 'west',
+                        title: '',
+                        width: 270,
+                        border: true,
+                        margins: '5 0 0 5',
+                        frame: false,
+                        split: true,
+                        layout: 'accordion',
+                        items: [{ 
+                            xtype: 'layertree',
+                            title: 'เลือกชั้นข้อมูล',
+                            map: map, 
+                            border: false
+                        }, gps
+                        ]
+                    },{
+                        region: 'center',
+                        layout: 'fit',
+                        frame: false,
+                        border: true,
+                        margins: '5 5 0 0',
+                        items: [{
+                            xtype: 'gx_mappanel',
+                            map: map,
+                            tbar: toolbarItems,
+                            border: false,
+                            center: thailand,
+                            zoom: 5
+                        }]
+                    },{
+                        region: 'south',
+                        id: 'statusBar',
+                        border: false,
+                        bodyStyle: 'text-align:left;padding:0px;',
+                        height: 25,
+                        margins: '5 0 0 0',
+                        frame: true,
+                        html: 'a status bar'
+                    }
+                ]
+            });
+        };
+        
+        var createToolbar = function() {
+            var action;
+
+            var createSeparator = function() {
+               toolbarItems.push(" ");
+               toolbarItems.push("-");
+               toolbarItems.push(" ");
+            };
+
+            action = new GeoExt.Action({
+                control: new OpenLayers.Control.ZoomToMaxExtent(),
+                map: map,
+                iconCls: 'zoomfull',
+                toggleGroup: 'map',
+                tooltip: 'Zoom to full extent'
+            });
+
+            toolbarItems.push(action);
+
+            createSeparator();
+
+            action = new GeoExt.Action({
+                control: new OpenLayers.Control.ZoomBox(),
+                tooltip: 'Zoom in: click in the map or use the left mouse button and drag to create a rectangle',
+                map: map,
+                iconCls: 'zoomin',
+                toggleGroup: 'map'
+            });
+
+            toolbarItems.push(action);
+
+            action = new GeoExt.Action({
+                control: new OpenLayers.Control.ZoomBox({
+                    out: true
+                }),
+                tooltip: 'Zoom out: click in the map or use the left mouse button and drag to create a rectangle',
+                map: map,
+                iconCls: 'zoomout',
+                toggleGroup: 'map'
+            });
+
+            toolbarItems.push(action);
+
+            action = new GeoExt.Action({
+                control: new OpenLayers.Control.DragPan({
+                    isDefault: true
+                }),
+                tooltip: 'Pan map: keep the left mouse button pressed and drag the map',
+                map: map,
+                iconCls: 'pan',
+                toggleGroup: 'map'
+            });
+
+            toolbarItems.push(action);
+
+            createSeparator();
+
+            action = new GeoExt.Action({
+                control: new OpenLayers.Control.DrawFeature(vectorLayer, OpenLayers.Handler.Point),
+                tooltip: 'Draw a point on the map',
+                map: map,
+                iconCls: 'drawpoint',
+                toggleGroup: 'map'
+            });
+
+            toolbarItems.push(action);
+
+
+            action = new GeoExt.Action({
+                control: new OpenLayers.Control.DrawFeature(vectorLayer, OpenLayers.Handler.Path),
+                tooltip: 'Draw a linestring on the map',
+                map: map,
+                iconCls: 'drawline',
+                toggleGroup: 'map'
+            });
+
+            toolbarItems.push(action);
+
+
+            action = new GeoExt.Action({
+                control: new OpenLayers.Control.DrawFeature(vectorLayer, OpenLayers.Handler.Polygon),
+                tooltip: 'Draw a polygon on the map',
+                map: map,
+                iconCls: 'drawpolygon',
+                toggleGroup: 'map'
+            });
+
+            toolbarItems.push(action);
+
+            createSeparator();
+
+            ctrl = new OpenLayers.Control.NavigationHistory();
+            map.addControl(ctrl);
+
+            action = new GeoExt.Action({
+                   tooltip: "Previous view",
+                   control: ctrl.previous,
+                   iconCls: 'back',
+                   disabled: true
+               });
+            toolbarItems.push(action);
+
+            action = new GeoExt.Action({
+                   tooltip: "Next view",
+                   control: ctrl.next,
+                   iconCls: 'next',
+                   disabled: true
+               });
+            toolbarItems.push(action);
+
+            createSeparator();
+        };
+        
+        // public space:
+        return {
+            // for debug, we make this property public:
+            vector: null,
+            
+            setStatus: function(text) {
+                Ext.getCmp('statusBar').body.dom.innerHTML = text;
+            },
+            
+            init: function() {
+                Ext.QuickTips.init();
+                createMap();
+
+                createWmsLayer(
+                  "เขตอุทยานแห่งชาติ",
+                  "http://203.157.240.9/cgi-bin/mapserv",
+                  {map: '/ms521/map/wms-dsi.map', layers: 'npark', 'transparent': true},
+                  {isBaseLayer: false}
+                );
+
+                createWmsLayer(
+                  "เขตป่าสงวน",
+                  "http://203.157.240.9/cgi-bin/mapserv",
+                  {map: '/ms521/map/wms-dsi.map', layers: 'rforest', 'transparent': true},
+                  {isBaseLayer: false}
+                );
+
+                createWmsLayer(
+                  "เขตป่า use forest",
+                  "http://203.157.240.9/cgi-bin/mapserv",
+                  {map: '/ms521/map/wms-dsi.map', layers: 'uforest', 'transparent': true},
+                  {isBaseLayer: false}
+                );
+
+                createWmsLayer(
+                  "ชั้นความสูง",
+                  "http://203.157.240.9/cgi-bin/mapserv",
+                  {map: '/ms521/map/wms-dsi.map', layers: 'contour', 'transparent': true},
+                  {isBaseLayer: false}
+                );
+
+                createWmsLayer(
+                  "Test Topo",
+                  "http://203.157.240.9/cgi-bin/mapserv",
+                  {map: '/ms521/map/wms-dsi.map', layers: 'testtopo', 'transparent': true},
+                  {isBaseLayer: false}
+                );
+
+                createGoogleLayer();
+
+                createBingLayer();
+
+                createMarker();
+
+                this.vector = createVectorLayer();
+                // vector layer is now accessible via toolbarExample.app.vector
+                
+                addMapControls();
+                createToolbar();
+                createViewport();
+                
+                // display some text in the status bar:
+                this.setStatus('Status: information');
+            }
+        };
+    }(); // end of app
+    
+    Ext.onReady(toolbarExample.app.init, toolbarExample.app);
+     
+     </script>
+     <style type="text/css">
+        .float-left {
+          float: left;
+        }
+        .clear-left {
+          clear: left;
+        }
+     </style>
+  </head>
+
+  <body>
+    <div id="north">
+       <p style="font-size:16pt;color:#15428B;font-weight:bold">DSI Web Map Development</p>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <head>
+    <title>Toolbar</title>
+    
+    <link rel="stylesheet" type="text/css" href="../../mfbase/ext/resources/css/ext-all.css" />
+    <link rel="stylesheet" type="text/css" href="../../mfbase/mapfish/mapfish.css" />
+
+    <script type="text/javascript" src="../../mfbase/openlayers/lib/Firebug/firebug.js"></script>
+    <script type="text/javascript" src="../../mfbase/openlayers/lib/OpenLayers.js"></script>
+    <script type="text/javascript" src="../../mfbase/ext/adapter/ext/ext-base.js"></script>
+    <script type="text/javascript" src="../../mfbase/ext/ext-all.js"></script>
+
+    <script src='http://dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=6.1'></script>
+    <script type="text/javascript" src="../../mfbase/geoext/lib/GeoExt.js"></script>
+    <script type="text/javascript">
+      // Because of a bug in Firefox 2 we need to specify the MapFish base path.
+      // See https://bugzilla.mozilla.org/show_bug.cgi?id=351282
+      var gMfLocation = "../../mfbase/mapfish/";
+    </script>
+    <script type="text/javascript" src="../../mfbase/mapfish/MapFish.js"></script>
+    <script type="text/javascript" src="../examples.js"></script>
+    
+    <script type="text/javascript">
+    // reference local blank image
+    Ext.BLANK_IMAGE_URL = '../../mfbase/ext/resources/images/default/s.gif';
+     
+    // create namespace
+    Ext.namespace('toolbarExample');
+     
+    // create application
+    toolbarExample.app = function() {  
+        // private vars:
+        var map, toolbarItems = [], viewport, vectorLayer;
+        var cur_geom;
+
+        // private functions
+        var createMap = function() {
+            map = new OpenLayers.Map();
+        }
+          
+        var createVE = function() {
+          var ve = new OpenLayers.Layer.VirtualEarth("Virtual Earth",{
+              maxExtent: new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34),
+              sphericalMercator: true }
+          );
+          map.addLayer(ve);
+        }
+
+        var createWmsLayer = function(name, url, params, options) {
+            map.addLayer(new OpenLayers.Layer.WMS(name, url, params, options));
+        };
+        
+        var createVectorLayer = function() {
+            vectorLayer = new OpenLayers.Layer.Vector("vector", {
+                displayInLayerSwitcher: false
+            });
+            map.addLayer(vectorLayer);
+            
+            vectorLayer.events.register('featureadded', vectorLayer, function(){
+                var l = this.features.length;
+                var msg = (l==1) ? 'There is one feature on map' : 'There are now ' + l + ' features on map';
+                toolbarExample.app.setStatus(msg);
+            });
+            
+            return vectorLayer;
+        };
+        
+        var addMapControls = function() {
+            // navigation control
+            var navControl = new OpenLayers.Control.Navigation({
+                type: OpenLayers.Control.TYPE_TOGGLE,
+                zoomWheelEnabled: true
+            });
+            map.addControl(navControl);
+            navControl.activate();
+        };
+        
+        var createViewport = function() {
+            viewport = new Ext.Viewport({
+                layout: 'border',
+                items: [
+                    new Ext.BoxComponent({
+                        region: 'north',
+                        el: 'north',
+                        height: 32,
+                        margins: {left: 5,top: 5}
+                    }), {
+                        region: 'west',
+                        title: 'LayerTree',
+                        width: 200,
+                        border: true,
+                        margins: '5 0 0 5',
+                        frame: false,
+                        split: true,
+                        layout: 'fit',
+                        collapsible: true,
+                        items: [{ 
+                            xtype: 'layertree',
+                            map: map, 
+                            border: false 
+                        }]
+                    },{
+                        region: 'center',
+                        layout: 'fit',
+                        frame: false,
+                        border: true,
+                        margins: '5 5 0 0',
+                        items: [{
+                            xtype: 'gx_mappanel',
+                            map: map,
+                            tbar: toolbarItems,
+                            border: false,
+                            center: new OpenLayers.LonLat(5,45),
+                            zoom: 6
+                        }]
+                    },{
+                        region: 'south',
+                        id: 'statusBar',
+                        border: false,
+                        bodyStyle: 'text-align:left;padding:0px;',
+                        height: 25,
+                        margins: '5 0 0 0',
+                        frame: true,
+                        html: 'a status bar'
+                    }
+                ]
+            });
+        };
+        
+        var createToolbar = function() {
+            var action;
+
+            var createSeparator = function() {
+               toolbarItems.push(" ");
+               toolbarItems.push("-");
+               toolbarItems.push(" ");
+            };
+
+            action = new GeoExt.Action({
+                control: new OpenLayers.Control.ZoomToMaxExtent(),
+                map: map,
+                iconCls: 'zoomfull',
+                toggleGroup: 'map',
+                tooltip: 'Zoom to full extent'
+            });
+
+            toolbarItems.push(action);
+
+            createSeparator();
+
+            action = new GeoExt.Action({
+                control: new OpenLayers.Control.ZoomBox(),
+                tooltip: 'Zoom in: click in the map or use the left mouse button and drag to create a rectangle',
+                map: map,
+                iconCls: 'zoomin',
+                toggleGroup: 'map'
+            });
+
+            toolbarItems.push(action);
+
+            action = new GeoExt.Action({
+                control: new OpenLayers.Control.ZoomBox({
+                    out: true
+                }),
+                tooltip: 'Zoom out: click in the map or use the left mouse button and drag to create a rectangle',
+                map: map,
+                iconCls: 'zoomout',
+                toggleGroup: 'map'
+            });
+
+            toolbarItems.push(action);
+
+            action = new GeoExt.Action({
+                control: new OpenLayers.Control.DragPan({
+                    isDefault: true
+                }),
+                tooltip: 'Pan map: keep the left mouse button pressed and drag the map',
+                map: map,
+                iconCls: 'pan',
+                toggleGroup: 'map'
+            });
+
+            toolbarItems.push(action);
+
+            createSeparator();
+
+            action = new GeoExt.Action({
+                control: new OpenLayers.Control.DrawFeature(vectorLayer, 
+                  OpenLayers.Handler.Point),
+                tooltip: 'Draw a point on the map',
+                map: map,
+                iconCls: 'drawpoint',
+                toggleGroup: 'map'
+            });
+
+            toolbarItems.push(action);
+
+            action = new GeoExt.Action({
+              control: new OpenLayers.Control.ModifyFeature(vectorLayer),
+                tooltip: 'Move a point on the map',
+                map: map,
+                iconCls: 'drawpoint',
+                toggleGroup: 'map'
+            });
+
+            toolbarItems.push(action);
+
+            action = new GeoExt.Action({
+              control: new OpenLayers.Control.SelectFeature(vectorLayer,
+                { onSelect: hotspotSelect} ),
+                tooltip: 'Add details',
+                map: map,
+                iconCls: 'drawpoint',
+                toggleGroup: 'map'
+            });
+
+            function hotspotSelect(feature){
+              cur_geom = feature.geometry;
+              var hotspotForm = new Ext.form.FormPanel({
+                width: 400
+                ,id: 'hotspotForm'
+                ,buttonAlign: 'center'
+                ,autoHeight: true
+                ,labelWidth: 75
+                ,url: '/dsi/saveHotspot.rb'
+                ,baseParams: {
+                }
+                ,frame: false
+                ,border: false
+                ,bodyStyle: 'padding: 5px 5px 0 5px;'
+                ,title: 'รายละเอียด Hotspot'
+                ,defaults: {
+                  anchor: '90%'
+                  ,msgTarget: 'side'
+                }
+                ,defaultType: 'textfield'
+                ,items: [{
+                  id: 'hot_id'
+                  ,name: 'hot_id'
+                  ,fieldLabel: 'ID'
+                  ,disabled: true
+                  ,value: 1
+                },{
+                  xtype: 'textarea'
+                  ,id: 'hot_geometry'
+                  ,fieldLabel: 'Geometry'
+                  ,name: 'hot_geometry'
+                  ,value: cur_geom
+                },{
+                  xtype: 'textarea'
+                  ,id: 'hot_description'
+                  ,fieldLabel: 'Description'
+                  ,name: 'hot_description'
+                },{
+                  id: 'hot_date'
+                  ,name: 'hot_date'
+                  ,xtype: 'datefield'
+                  ,fieldLabel: 'Date'
+                  ,format: 'Y-m-d'
+                }] // eof items
+                ,buttons: [{
+                  text:'Save'
+                  ,handler: function() {
+                    hotspotForm.getForm().submit({
+                      success: function(f, a) {
+                        Ext.Msg.show({
+                          title: 'Success'
+                          ,width: 250
+                          ,msg: '1 record added to Database'
+                          ,icon: Ext.MessageBox.INFO
+                          ,buttons: Ext.MessageBox.OK
+                        });
+                        win.close();
+                      } // eo success
+                      ,failure: function(f, a) {
+                        Ext.Msg.show({
+                          title: 'Warning'
+                          ,width: 250
+                          ,msg: 'Fail to add Hotspot to Database'
+                          ,icon: Ext.MessageBox.WARNING
+                          ,buttons: Ext.MessageBox.OK
+                        })
+                      } // eo failure
+                    }) // eo hotspotForm
+                  } // eo handler
+                },{
+                  text: 'Reset'
+                  ,handler: function(){
+                    hotspotForm.getForm().reset();
+                  } // eo handler
+                }] // eo buttons
+              }); // eo hotspotForm
+
+              var win = new Ext.Window({
+                title: 'แบบฟอร์มบันทึก Hotspot'
+                ,id: 'inp-win'
+                ,width: 400
+                ,autoHeight: true
+                ,items: [ hotspotForm ]
+              });
+              win.show();
+            }
+
+            toolbarItems.push(action);
+
+            createSeparator();
+
+            ctrl = new OpenLayers.Control.NavigationHistory();
+            map.addControl(ctrl);
+
+            action = new GeoExt.Action({
+                   tooltip: "Previous view",
+                   control: ctrl.previous,
+                   iconCls: 'back',
+                   disabled: true
+               });
+            toolbarItems.push(action);
+
+            action = new GeoExt.Action({
+                   tooltip: "Next view",
+                   control: ctrl.next,
+                   iconCls: 'next',
+                   disabled: true
+               });
+            toolbarItems.push(action);
+
+            createSeparator();
+        };
+        
+        // public space:
+        return {
+            // for debug, we make this property public:
+            vector: null,
+            
+            setStatus: function(text) {
+                Ext.getCmp('statusBar').body.dom.innerHTML = text;
+            },
+            
+            init: function() {
+                Ext.QuickTips.init();
+                createMap();
+                createVE();
+                createWmsLayer(
+                    "OpenLayers WMS", 
+                    "http://labs.metacarta.com/wms/vmap0",
+                    {layers: 'basic'}, 
+                    {isBaseLayer: true}
+                );
+                createWmsLayer(
+                    "Hotspot",
+                    "http://203.157.240.9/cgi-bin/mapserv",
+                    {map: '/ms521/map/wms-dsi.map', layers: 'hotspot', transparent: true},
+                    {isBaseLayer: false}
+                );
+                
+                this.vector = createVectorLayer();
+                // vector layer is now accessible via toolbarExample.app.vector
+                
+                addMapControls();
+                createToolbar();
+                createViewport();
+                
+                // display some text in the status bar:
+                this.setStatus('Status: information');
+            }
+        };
+    }(); // end of app
+    
+    Ext.onReady(toolbarExample.app.init, toolbarExample.app);
+     
+     </script>
+     <style type="text/css">
+        .float-left {
+          float: left;
+        }
+        .clear-left {
+          clear: left;
+        }
+     </style>
+  </head>
+
+  <body>
+    <div id="north">
+       <p style="font-size:16pt;color:#15428B;font-weight:bold">MapFish example: map with toolbar</p>
+    </div>
+  </body>
+</html>
