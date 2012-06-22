@@ -13,14 +13,15 @@ def log(msg)
 end
 
 def get_center(text, table)
+  text = text.split(' ').first
   if table =~ /province/
-    cond = "prov_nam_t = '#{text}'"
+    cond = "prov_nam_t LIKE '%#{text}%'"
   elsif table =~ /amphoe/
-    cond = "amphoe_t = '#{text}'"
+    cond = "amphoe_t LIKE '%#{text}%'"
   elsif table =~ /tambon/
-    cond = "tam_nam_t = '#{text}'"
+    cond = "tam_nam_t LIKE '%#{text}%'"
   elsif table =~ /muban/
-    cond = "muban = '#{text}'"
+    cond = "muban LIKE '%#{text}%'"
   else
     cond = "1 = 1"
   end
@@ -28,6 +29,7 @@ def get_center(text, table)
   sql = "SELECT center(the_geom) "
   sql += "FROM #{table} "
   sql += "WHERE #{cond}"
+  log("sql: #{sql}")
   res = con.exec(sql)
   con.close
   found = res.num_tuples
@@ -41,6 +43,7 @@ def get_center(text, table)
 end
 
 def search_location(kw)
+
   con = PGconn.connect("localhost",5432,nil,nil,"dsi")
   sql = "SELECT loc_text,loc_table "
   sql += "FROM locations "
@@ -60,22 +63,22 @@ def search_location(kw)
       if (xtable =~ /muban/ && !match)
         text = xtext
         table = xtable
-        match = true if (text == kw)
+        match = true if (text =~ /#{kw}/)
       end
       if (xtable =~ /province/)
         text = xtext
         table = xtable
-        match = true if (text == kw)
+        match = true if (text =~ /#{kw}/)
       end
       if (xtable =~ /amphoe/)
         text = xtext
         table = xtable
-        match = true if (text == kw)
+        match = true if (text =~ /#{kw}/)
       end
       if (xtable =~ /tambon/)
         text = xtext
         table = xtable
-        match = true if (text == kw)
+        match = true if (text =~ /#{kw}/)
       end    
     end
   end
@@ -119,13 +122,13 @@ lonlat = mysearch[2]
 filter = ''
 
 if table =~ /province/
-  filter = "prov_nam_t = '#{text}'"
+  filter = "prov_nam_t LIKE '%#{text}%'"
 elsif table =~ /amphoe/
-  filter = "amphoe_t = '#{text}'"
+  filter = "amphoe_t LIKE '%#{text}%'"
 elsif table =~ /tambon/
-  filter = "tam_nam_t = '#{text}'"
+  filter = "tam_nam_t LIKE '%#{text}%'"
 elsif table =~ /muban/
-  filter = "muban = '#{text}'"
+  filter = "muban LIKE '%#{text}%'"
   geom = "POINT"
 end
 

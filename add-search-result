@@ -1,0 +1,344 @@
+22d21
+< 
+24c23
+<     <script src="http://maps.google.com/maps/api/js?v=3.2&sensor=false"></script>
+---
+>     <script type="text/javascript" src="/mapfish/mfbase/openlayers/lib/OpenLayers.js"></script>
+27c26
+<     <script src='http://maps.google.com/maps?file=api&v=2&key=ABQIAAAANSH4gLdDtOLGbRXcM8JhLRQy0YMIzTaJQ9ibseWUKiF2cHzKTRStce5b7eW2MNUarHgsYkvan0sv_A'></script> 
+---
+>     <script type="text/javascript" src="js/OpenLayers.js"></script>
+29d27
+<     <script type="text/javascript" src="/mapfish/mfbase/openlayers/lib/OpenLayers.js"></script>
+30a29
+> 
+32a32,34
+>     <script type="text/javascript" src="/mapfish/mfbase/mapfish/MapFish.js"></script>
+>     <script type="text/javascript" src="/mapfish/examples/examples.js"></script>
+> 
+40,41c42,52
+<     <script type="text/javascript" src="/mapfish/mfbase/mapfish/MapFish.js"></script>
+<     <script type="text/javascript" src="/mapfish/examples/examples.js"></script>
+---
+> 
+> 
+>     <!--
+>     <script src="http://maps.google.com/maps/api/js?v=3.2&sensor=false"></script>
+>     -->
+> 
+>     <script src='http://maps.google.com/maps?file=api&v=2&key=ABQIAAAANSH4gLdDtOLGbRXcM8JhLRQy0YMIzTaJQ9ibseWUKiF2cHzKTRStce5b7eW2MNUarHgsYkvan0sv_A'></script> 
+> 
+> 
+>     <script type="text/javascript" src="js/Ext.ux.form.QryComboBox.js"></script>
+> 
+61a73,74
+>         var map, drawControls, selectControl, selectedFeature;
+> 
+92c105
+<             {maxSize: new OpenLayers.Size(120, 75) } );
+---
+>             {maxSize: new OpenLayers.Size(120, 30) } );
+113c126
+<           //map.events.register("click", feature, markerClick);
+---
+>           map.events.register("click", feature, markerClick);
+124c137
+<             controls: [],
+---
+>             controls: []
+142c155
+<             {isBaseLayer: false, displayInLayerSwitcher: false, singleTile: true, ratio: 1 }
+---
+>             {isBaseLayer: false, displayInLayerSwitcher: true, singleTile: true, ratio: 1 }
+143a157
+> 
+145a160,171
+> 
+>           hili.events.register('featureselected', this, function(feature){
+>             var msg = feature.inspect;
+>             alert("msg:" + msg);
+>           });
+> 
+>           hili.events.register('click', this, function(){
+>             var msg = "hili layer Click!";
+>             toolbarExample.app.setStatus(msg);
+>             debugger;
+>           });
+> 
+166c192
+<             displayInLayerSwitcher: false
+---
+>             displayInLayerSwitcher: true
+177c203
+<                 displayInLayerSwitcher: false
+---
+>                 displayInLayerSwitcher: true
+181c207
+<             vectorLayer.events.register('featureadded', vectorLayer, function(){
+---
+>             vectorLayer.events.register('featureadded', this, function(){
+186c212
+<             
+---
+> 
+245,247c271,276
+<               var data = eval( '(' + response.responseText + ')' );
+<               var lon = data.lon;
+<               var lat = data.lat;
+---
+>               // var data = eval( '(' + response.responseText + ')' );
+>               // No response from IE
+> 
+>               var data = Ext.decode(response.responseText);
+>               var lon = parseFloat(data.lon);
+>               var lat = parseFloat(data.lat);
+254c283
+<               var size = new OpenLayers.Size(21,25);
+---
+>               var size = new OpenLayers.Size(42,50);
+256a286
+>               debugger;
+391,393c421,425
+<               var data = eval( '(' + response.responseText + ')' );
+<               var lon = data.lon;
+<               var lat = data.lat;
+---
+>               //var data = eval( '(' + response.responseText + ')' );
+> 
+>               var data = Ext.decode(response.responseText);
+>               var lon = parseFloat(data.lon);
+>               var lat = parseFloat(data.lat);
+529,531c561,565
+<               var data = eval( '(' + response.responseText + ')' );
+<               var lon = data.lon;
+<               var lat = data.lat;
+---
+>               // var data = eval( '(' + response.responseText + ')' );
+> 
+>               var data = Ext.decode(response.responseText);
+>               var lon = parseFloat(data.lon);
+>               var lat = parseFloat(data.lat);
+575,577c609,613
+<               var data = eval( '(' + response.responseText + ')' );
+<               var lon = data.lon;
+<               var lat = data.lat;
+---
+>               // var data = eval( '(' + response.responseText + ')' );
+> 
+>               var data = Ext.decode(response.responseText);
+>               var lon = parseFloat(data.lon);
+>               var lat = parseFloat(data.lat);
+683,685c719,721
+<         var search_kw = function(){
+<           var kw = Ext.getCmp('id_kw').getValue();        
+<           search(kw);
+---
+>         var search_query = function(){
+>           var query = Ext.getCmp('id_query').getValue();        
+>           search(query);
+688c724
+<         var search = function(kw) {
+---
+>         var search = function(query) {
+691c727
+<             url: 'rb/search-google.rb'
+---
+>             url: 'rb/search-googlex.rb'
+694c730,731
+<               ,kw: kw
+---
+>               ,query: query
+>               ,exact: 1
+697,701c734,735
+<               var data = eval( '(' + response.responseText + ')' );
+<               var lon = data.lon
+<               var lat = data.lat;
+<               var text = data.text;
+<               var name = data.name;
+---
+>               // var data = eval( '(' + response.responseText + ')' );
+>               // No response from IE
+702a737,742
+>               var data = Ext.decode(response.responseText);
+>               var gid = data.records[0].loc_gid;
+>               var text = data.records[0].loc_text;
+>               var table = data.records[0].loc_table;
+>               var lon = parseFloat(data.records[0].lon).toFixed(2);
+>               var lat = parseFloat(data.records[0].lat).toFixed(2);
+703a744,747
+> 
+>               var p1 = new OpenLayers.LonLat(lon,lat);
+>               var p2 = p1.transform(gcs,merc);
+> 
+706c750,753
+<                 if (text.indexOf("จ.") == 0)
+---
+>                 map.setLayerIndex(markers, 0);
+>                 map.setLayerIndex(hili, 0);
+>                 if (text.indexOf("จ.") == 0) {
+>                   map.setLayerIndex(hili, 99);
+708c755,757
+<                 else if (text.indexOf("อ.") == 0)
+---
+>                 }
+>                 else if (text.indexOf("อ.") == 0) {
+>                   map.setLayerIndex(hili, 99);
+710c759,761
+<                 else if (text.indexOf("ต.") == 0)
+---
+>                 }
+>                 else if (text.indexOf("ต.") == 0) {
+>                   map.setLayerIndex(hili, 99);
+712c763,764
+<                 else
+---
+>                 }
+>                 else {
+713a766,768
+>                   map.setLayerIndex(markers, 99);
+>                   setMarker(lon, lat, text);
+>                 }
+716,719d770
+<               var p1 = new OpenLayers.LonLat(lon,lat);
+<               var p2 = p1.transform(gcs,merc);
+< 
+<               setMarker(lon, lat, text);
+728,729c779,781
+<               Ext.Msg.alert('Result',data.text + '<br>lat:' + parseFloat(lat).toFixed(2) + ' lon:' + parseFloat(lon).toFixed(2));
+<               if (data.text.search(/จ./) == 0 || data.text.search(/อ./) == 0 || data.text.search(/ต./) == 0)
+---
+>               Ext.Msg.alert('Result',text + '<br>lat:' + lat + ' lon:' + lon);
+>               if (text.search(/จ./) == 0 || text.search(/อ./) == 0 || text.search(/ต./) == 0 || text.search(/บ้าน/) == 0)
+>               {
+731c783,784
+<               //addWKT(gid);
+---
+>                 //addWKT(table, gid);
+>               }
+733c786
+<           });
+---
+>          });
+736c789
+<         function addWKT(gid)
+---
+>         function addWKT(table, gid)
+738c791
+<           var url = "rb/getPolygonWKT.rb?gid=" + gid;   
+---
+>           var url = "rb/getPolygonWKT.rb?table=" + table + "&gid=" + gid;   
+740,741c793,794
+<             debugger;
+<             addWKTFeatures(response.responseText);
+---
+>             geom = response.responseText;
+>             addWKTFeatures(geom);
+749,750d801
+< 	  debugger;
+<           return false;
+764a816
+>           vectorLayer.removeFeatures;
+769,775c821,848
+<         var myTextField = new Ext.form.TextField({
+<           id: 'id_kw',
+<           fieldLabel: 'ระบุคำค้น',
+<           labelSeparator: ':',
+<           name: 'kw',
+<           anchor:'95%'
+<         });
+---
+>         var myTextField = new Ext.ux.form.QryComboBox({
+>           id: 'id_query'
+>           ,fieldLabel: 'ค้นหา'
+>           ,labelSeparator: ':'
+>           ,labelWidth: 50
+>           ,hiddenField: ['loc_table','loc_gid']
+>           ,displayField: 'loc_text'
+>           ,urlStore: 'rb/search-googlex.rb'
+>           ,fieldStore: ['loc_text']
+>           ,width: '110'
+>           ,minListWidth: '300'
+>           ,anchor: '95%'
+>           ,listeners: {
+>             select: function(combo, record, index) {
+>               //debugger;
+>               Ext.getCmp('btn_search').enable();
+>             }
+>           }
+> 
+>         })
+> 
+>         //var myTextField = new Ext.form.TextField({
+>           //id: 'id_query',
+>           //fieldLabel: 'ระบุคำค้น',
+>           //labelSeparator: ':',
+>           //name: 'query',
+>           //anchor:'95%'
+>         //});
+781c854
+<             search_kw();
+---
+>             search_query();
+785,786c858,859
+<         var searchkw = new Ext.FormPanel({
+<           id: 'id_searchkw',
+---
+>         var searchquery = new Ext.FormPanel({
+>           id: 'id_searchquery',
+792c865
+<           width: 250,
+---
+>           width: 300,
+794,799c867,875
+<             layout: 'form',
+<             items: [ myTextField ],
+<             bodyCfg: {tag: 'center'},
+<             buttons: [{
+<               text: 'Search',
+<               handler: search_kw
+---
+>             layout: 'form'
+>             ,labelWidth: 30
+>             ,items: [ myTextField ]
+>             ,bodyCfg: {tag: 'center'}
+>             ,buttons: [{
+>               text: 'Search'
+>               ,id: 'btn_search'
+>               ,handler: search_query
+>               ,disabled: true
+801,803c877,879
+<               text: 'Clear',
+<               handler: function(){
+<                 searchkw.getForm().reset();
+---
+>               text: 'Clear'
+>               ,handler: function(){
+>                 searchquery.getForm().reset();
+806c882,883
+<                 Ext.getCmp('id_kw').focus();
+---
+>                 Ext.getCmp('id_query').focus();
+>                 Ext.getCmp('btn_search').disable();
+923c1000
+<                           }, gps, gps_utm, gps_utm_indian, searchkw
+---
+>                           }, gps, gps_utm, gps_utm_indian, searchquery
+1066a1144,1156
+>             action = new GeoExt.Action({
+>                 control: new OpenLayers.Control.SelectFeature(vectorLayer),
+>                 tooltip: 'Show info. when click!',
+>                 map: map,
+>                 iconCls: 'info',
+>                 toggleGroup: 'map',
+>                 handler: function(){
+>                   selectControl.activate();
+>                 }
+>             });
+> 
+>             toolbarItems.push(action);
+> 
+1191d1280
+<                 createMarker();
+1194a1284,1285
+> 
+>                 createMarker();
